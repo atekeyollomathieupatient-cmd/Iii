@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MDS NovaTech — Retrouver mon Matricule</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0f1e;
+      --surface: #111827;
+      --card: #161f35;
+      --border: #1e2d4a;
+      --accent: #00e5ff;
+      --accent2: #7c3aed;
+      --text: #e8edf7;
+      --muted: #6b7fa3;
+      --success: #10b981;
+      --error: #f43f5e;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow orbs */
+    body::after {
+      content: '';
+      position: fixed;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+      top: -150px; right: -150px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .glow-orb-2 {
+      position: fixed;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0,229,255,0.08);
+      border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 100px;
+      padding: 0.35rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+
+    .logo-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 0.6rem;
+      font-weight: 400;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    input {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input::placeholder { color: #3a4a6b; }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,229,255,0.1);
+    }
+
+    /* Button */
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--accent) 0%, #0099bb 100%);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px rgba(0,229,255,0.3);
+    }
+
+    .btn:active:not(:disabled) { transform: translateY(0); }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    .btn.loading .btn-text { display: none; }
+    .btn.loading .spinner { display: block; }
+
+    /* Result box */
+    .result-box {
+      margin-top: 1.5rem;
+      border-radius: 14px;
+      padding: 1.4rem;
+      display: none;
+      animation: scaleIn 0.3s ease both;
+    }
+
+    .result-box.success {
+      display: block;
+      background: rgba(16,185,129,0.06);
+      border: 1.5px solid rgba(16,185,129,0.3);
+    }
+
+    .result-box.error {
+      display: block;
+      background: rgba(244,63,94,0.06);
+      border: 1.5px solid rgba(244,63,94,0.3);
+    }
+
+    .result-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--success);
+      margin-bottom: 0.5rem;
+    }
+
+    .result-box.error .result-label {
+      color: var(--error);
+    }
+
+    .result-name {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 0.8rem;
+    }
+
+    .matricule-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+    }
+
+    .matricule-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+
+    .copy-btn {
+      background: rgba(0,229,255,0.1);
+      border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 8px;
+      padding: 0.5rem 0.8rem;
+      color: var(--accent);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover { background: rgba(0,229,255,0.2); transform: scale(1.03); }
+    .copy-btn:active { transform: scale(0.97); }
+
+    .error-message {
+      font-size: 0.9rem;
+      color: var(--error);
+    }
+
+    /* Admin section */
+    .admin-toggle {
+      text-align: center;
+      margin-top: 2rem;
+      animation: fadeUp 0.6s 0.25s ease both;
+    }
+
+    .admin-link {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.2s;
+    }
+    .admin-link:hover { color: var(--text); }
+
+    /* Password modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 360px;
+      margin: 1rem;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      animation: scaleIn 0.25s ease both;
+    }
+
+    .modal h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .modal p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1.4rem;
+    }
+
+    .modal-field {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .modal-field input {
+      width: 100%;
+      padding-right: 2.8rem;
+    }
+
+    .toggle-pw {
+      position: absolute;
+      right: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .modal-error {
+      font-size: 0.82rem;
+      color: var(--error);
+      margin-bottom: 0.8rem;
+      min-height: 1.1em;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.7rem;
+    }
+
+    .modal-cancel {
+      flex: 1;
+      padding: 0.8rem;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .modal-cancel:hover { border-color: var(--text); color: var(--text); }
+
+    .modal-confirm {
+      flex: 2;
+      padding: 0.8rem;
+      background: linear-gradient(135deg, var(--accent2), #6d28d9);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .modal-confirm:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .admin-logout {
+      background: none;
+      border: none;
+      color: var(--error);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      margin-left: 0.8rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .admin-logout:hover { opacity: 1; }
+
+    .admin-panel {
+      display: none;
+      margin-top: 1.5rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.8rem;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .admin-panel.open { display: block; }
+
+    .admin-panel h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      color: var(--accent2);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .admin-panel h2::before {
+      content: '⚙';
+      font-size: 1rem;
+    }
+
+    .admin-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 0.6rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .admin-input {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .admin-input::placeholder { color: #3a4a6b; }
+    .admin-input:focus { border-color: var(--accent2); }
+
+    .add-btn {
+      background: rgba(124,58,237,0.15);
+      border: 1.5px solid rgba(124,58,237,0.4);
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      color: #a78bfa;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .add-btn:hover { background: rgba(124,58,237,0.25); }
+
+    /* Table */
+    .records-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.2rem;
+      font-size: 0.82rem;
+    }
+
+    .records-table th {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .records-table td {
+      padding: 0.6rem;
+      border-bottom: 1px solid rgba(30,45,74,0.5);
+      color: var(--text);
+    }
+
+    .records-table tr:last-child td { border-bottom: none; }
+
+    .matricule-mono {
+      font-family: 'DM Mono', monospace;
+      color: var(--accent);
+      font-size: 0.85rem;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--error);
+      cursor: pointer;
+      font-size: 1rem;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    .del-btn:hover { opacity: 1; }
+
+    .no-records {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding: 1.5rem;
+    }
+
+    .status-msg {
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+      transition: color 0.2s;
+    }
+    .status-msg.ok { color: var(--success); }
+    .status-msg.err { color: var(--error); }
+
+    /* Animations */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @media (max-width: 480px) {
+      .admin-row { grid-template-columns: 1fr 1fr; }
+      .admin-row .add-btn { grid-column: span 2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-orb-2"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-badge">Agripreneurs</div>
+      <h1>Retrouvez votre<br/><span>numéro matricule</span></h1>
+      <p class="subtitle">Entrez vos informations pour accéder à votre matricule</p>
+    </div>
+
+    <!-- Search card -->
+    <div class="card">
+      <div class="field-group">
+        <div class="field">
+          <label for="nom">Nom</label>
+          <input type="text" id="nom" placeholder="Ex: Dupont" autocomplete="family-name"/>
+        </div>
+        <div class="field">
+          <label for="prenom">Prénom</label>
+          <input type="text" id="prenom" placeholder="Ex: Jean" autocomplete="given-name"/>
+        </div>
+      </div>
+
+      <button class="btn" id="searchBtn" onclick="rechercherMatricule()">
+        <span class="btn-text">🔍 Retrouver mon matricule</span>
+        <div class="spinner"></div>
+      </button>
+
+      <!-- Result -->
+      <div class="result-box" id="resultBox">
+        <div class="result-label" id="resultLabel"></div>
+        <div class="result-name" id="resultName"></div>
+        <div class="matricule-display" id="matriculeDisplay" style="display:none">
+          <span class="matricule-value" id="matriculeValue"></span>
+          <button class="copy-btn" onclick="copierMatricule()">📋 Copier</button>
+        </div>
+        <div class="error-message" id="errorMessage"></div>
+      </div>
+    </div>
+
+    <!-- Admin toggle -->
+    <div class="admin-toggle">
+      <button class="admin-link" onclick="demanderMotDePasse()" id="adminToggleBtn">Panneau administrateur</button>
+    </div>
+
+    <!-- Password modal -->
+    <div class="modal-overlay" id="pwModal">
+      <div class="modal">
+        <h3>🔒 Accès administrateur</h3>
+        <p>Entrez le code secret pour continuer.</p>
+        <div class="modal-field">
+          <input type="password" id="pwInput" placeholder="Code secret" autocomplete="off"/>
+          <button class="toggle-pw" onclick="togglePwVisibility()" id="togglePwBtn" type="button">👁</button>
+        </div>
+        <div class="modal-error" id="pwError"></div>
+        <div class="modal-actions">
+          <button class="modal-cancel" onclick="fermerModal()">Annuler</button>
+          <button class="modal-confirm" onclick="verifierMotDePasse()">Entrer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin panel -->
+    <div class="admin-panel" id="adminPanel">
+      <h2>Gestion des matricules <button class="admin-logout" onclick="deconnecterAdmin()" title="Se déconnecter">✕ Quitter</button></h2>
+
+      <div class="admin-row">
+        <input class="admin-input" type="text" id="aNom" placeholder="Nom"/>
+        <input class="admin-input" type="text" id="aPrenom" placeholder="Prénom"/>
+        <input class="admin-input" type="text" id="aMatricule" placeholder="Matricule"/>
+        <button class="add-btn" onclick="ajouterEntree()">+ Ajouter</button>
+      </div>
+      <div class="status-msg" id="adminStatus"></div>
+
+      <table class="records-table" id="recordsTable">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Matricule</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="recordsBody">
+          <tr><td colspan="4" class="no-records">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBffKAg7gLQ9hUfVDbmfaYK2uaQr5U2mxs",
+      authDomain: "mds-novatech.firebaseapp.com",
+      projectId: "mds-novatech",
+      storageBucket: "mds-novatech.firebasestorage.app",
+      messagingSenderId: "9720867259",
+      appId: "1:9720867259:web:0b9a085994d2bc3f9a3c9e",
+      measurementId: "G-9KH3JWHW9C"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const COL = "matricules";
+
+    // ── Normalize: lowercase + strip accents ──
+    function normalize(str) {
+      return str.trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    // ── Recherche ──
+    window.rechercherMatricule = async function() {
+      const nom    = document.getElementById("nom").value.trim();
+      const prenom = document.getElementById("prenom").value.trim();
+      const box    = document.getElementById("resultBox");
+      const btn    = document.getElementById("searchBtn");
+
+      if (!nom || !prenom) {
+        showError("Veuillez remplir le nom et le prénom.");
+        return;
+      }
+
+      btn.classList.add("loading");
+      btn.disabled = true;
+      box.className = "result-box";
+
+      try {
+        const q = query(
+          collection(db, COL),
+          where("nomNorm", "==", normalize(nom)),
+          where("prenomNorm", "==", normalize(prenom))
+        );
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          showError(`Aucun matricule trouvé pour « ${nom} ${prenom} ».`);
+        } else {
+          const data = snap.docs[0].data();
+          showSuccess(data.nom, data.prenom, data.matricule);
+        }
+      } catch (e) {
+        showError("Erreur de connexion. Vérifiez les règles Firestore.");
+        console.error(e);
+      } finally {
+        btn.classList.remove("loading");
+        btn.disabled = false;
+      }
+    };
+
+    function showSuccess(nom, prenom, matricule) {
+      const box = document.getElementById("resultBox");
+      box.className = "result-box success";
+      document.getElementById("resultLabel").textContent = "✅ Matricule trouvé";
+      document.getElementById("resultName").textContent = `${nom} ${prenom}`;
+      document.getElementById("matriculeValue").textContent = matricule;
+      document.getElementById("matriculeDisplay").style.display = "flex";
+      document.getElementById("errorMessage").textContent = "";
+      window._currentMatricule = matricule;
+    }
+
+    function showError(msg) {
+      const box = document.getElementById("resultBox");
+      box.className = "result-box error";
+      document.getElementById("resultLabel").textContent = "❌ Non trouvé";
+      document.getElementById("resultName").textContent = "";
+      document.getElementById("matriculeDisplay").style.display = "none";
+      document.getElementById("errorMessage").textContent = msg;
+    }
+
+    // ── Copier ──
+    window.copierMatricule = function() {
+      const val = document.getElementById("matriculeValue").textContent;
+      navigator.clipboard.writeText(val).then(() => {
+        const btn = document.querySelector(".copy-btn");
+        btn.textContent = "✅ Copié !";
+        setTimeout(() => btn.textContent = "📋 Copier", 2000);
+      });
+    };
+
+    // ── Admin auth ──
+    const ADMIN_PW = "M@th2004";
+    let adminUnlocked = false;
+
+    window.demanderMotDePasse = function() {
+      if (adminUnlocked) {
+        // Already logged in, just toggle panel
+        const panel = document.getElementById("adminPanel");
+        panel.classList.toggle("open");
+        if (panel.classList.contains("open")) chargerEnregistrements();
+        return;
+      }
+      document.getElementById("pwInput").value = "";
+      document.getElementById("pwError").textContent = "";
+      document.getElementById("pwModal").classList.add("open");
+      setTimeout(() => document.getElementById("pwInput").focus(), 100);
+    };
+
+    window.fermerModal = function() {
+      document.getElementById("pwModal").classList.remove("open");
+    };
+
+    window.togglePwVisibility = function() {
+      const inp = document.getElementById("pwInput");
+      const btn = document.getElementById("togglePwBtn");
+      if (inp.type === "password") { inp.type = "text"; btn.textContent = "🙈"; }
+      else { inp.type = "password"; btn.textContent = "👁"; }
+    };
+
+    window.verifierMotDePasse = function() {
+      const val = document.getElementById("pwInput").value;
+      if (val === ADMIN_PW) {
+        adminUnlocked = true;
+        fermerModal();
+        document.getElementById("adminToggleBtn").textContent = "Panneau administrateur ✅";
+        const panel = document.getElementById("adminPanel");
+        panel.classList.add("open");
+        chargerEnregistrements();
+      } else {
+        document.getElementById("pwError").textContent = "❌ Code incorrect. Réessayez.";
+        document.getElementById("pwInput").value = "";
+        document.getElementById("pwInput").focus();
+      }
+    };
+
+    window.deconnecterAdmin = function() {
+      adminUnlocked = false;
+      document.getElementById("adminPanel").classList.remove("open");
+      document.getElementById("adminToggleBtn").textContent = "Panneau administrateur";
+    };
+
+    // Enter key in password modal
+    document.getElementById("pwInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") window.verifierMotDePasse();
+      if (e.key === "Escape") window.fermerModal();
+    });
+
+    // Click outside modal to close
+    document.getElementById("pwModal").addEventListener("click", e => {
+      if (e.target === document.getElementById("pwModal")) window.fermerModal();
+    });
+
+    async function chargerEnregistrements() {
+      const tbody = document.getElementById("recordsBody");
+      tbody.innerHTML = '<tr><td colspan="4" class="no-records">Chargement…</td></tr>';
+      try {
+        const snap = await getDocs(collection(db, COL));
+        if (snap.empty) {
+          tbody.innerHTML = '<tr><td colspan="4" class="no-records">Aucun enregistrement</td></tr>';
+          return;
+        }
+        tbody.innerHTML = "";
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${d.nom}</td>
+            <td>${d.prenom}</td>
+            <td class="matricule-mono">${d.matricule}</td>
+            <td><button class="del-btn" title="Supprimer" onclick="supprimerEntree('${docSnap.id}', this)">🗑</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="4" class="no-records">Erreur de chargement</td></tr>';
+      }
+    }
+
+    window.ajouterEntree = async function() {
+      const nom       = document.getElementById("aNom").value.trim();
+      const prenom    = document.getElementById("aPrenom").value.trim();
+      const matricule = document.getElementById("aMatricule").value.trim();
+      const status    = document.getElementById("adminStatus");
+
+      if (!nom || !prenom || !matricule) {
+        status.textContent = "Tous les champs sont requis.";
+        status.className = "status-msg err";
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, COL), {
+          nom, prenom, matricule,
+          nomNorm: normalize(nom),
+          prenomNorm: normalize(prenom)
+        });
+        document.getElementById("aNom").value = "";
+        document.getElementById("aPrenom").value = "";
+        document.getElementById("aMatricule").value = "";
+        status.textContent = `✅ ${nom} ${prenom} ajouté avec succès.`;
+        status.className = "status-msg ok";
+        chargerEnregistrements();
+      } catch(e) {
+        status.textContent = "Erreur lors de l'ajout.";
+        status.className = "status-msg err";
+      }
+    };
+
+    window.supprimerEntree = async function(id, btn) {
+      if (!confirm("Supprimer cet enregistrement ?")) return;
+      try {
+        await deleteDoc(doc(db, COL, id));
+        btn.closest("tr").remove();
+      } catch(e) {
+        alert("Erreur lors de la suppression.");
+      }
+    };
+
+    // Enter key support
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        if (document.activeElement.id === "nom" || document.activeElement.id === "prenom") {
+          window.rechercherMatricule();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
